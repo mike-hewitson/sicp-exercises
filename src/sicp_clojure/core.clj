@@ -1,4 +1,6 @@
-(ns sicp-clojure.core)
+(ns sicp-clojure.core
+  (:require [proto-repl.saved-values :as s]))
+
 
 ;;;;CODE FROM CHAPTER 1 OF STRUCTURE AND INTERPRETATION OF COMPUTER PROGRAMS
 
@@ -135,9 +137,9 @@
 
 (= a b)
 
-(if (and (> b a) (< b (* a b))
-     b
-     a))
+(if (and (> b a) (< b (* a b)))
+    b
+    a)
 
 (cond (= a 4) 6
       (= b 4) (+ 6 7 a)
@@ -301,7 +303,7 @@
 
 ;; Recursive
 
-(define (factorial n)
+(defn factorial [n]
   (if (= n 1)
       1
       (* n (factorial (- n 1)))))
@@ -309,10 +311,10 @@
 
 ;; Iterative
 
-(define (factorial n)
+(defn factorial [n]
   (fact-iter 1 1 n))
 
-(define (fact-iter product counter max-count)
+(defn fact-iter [product counter max-count]
   (if (> counter max-count)
       product
       (fact-iter (* counter product)
@@ -320,8 +322,8 @@
                  max-count)))
 
 ;; Iterative, block-structured (from footnote)
-(define (factorial n)
-  (define (iter product counter)
+(defn factorial [n]
+  (defn iter [product counter]
     (if (> counter n)
         product
         (iter (* counter product)
@@ -330,55 +332,98 @@
 
 
 ;;EXERCISE 1.9
-(define (+ a b)
+(defn + [a b]
   (if (= a 0)
       b
       (inc (+ (dec a) b))))
 
-(define (+ a b)
+(+ 3 4)
+(inc (+ 2 4))
+(inc (inc (+ 1 4)))
+(inc (inc (inc (+ 0 4))))
+(inc (inc (inc 4)))
+(inc (inc 5))
+(inc 6)
+7
+
+; This one is recursive
+
+(defn + [a b]
   (if (= a 0)
       b
       (+ (dec a) (inc b))))
 
+(+ 3 4)
+(+ (dec 3) (inc 4))
+(+ (dec 2) (inc 5))
+(+ (dec 1) (inc 6))
+7
+
+; This one is iterative
+
 ;;EXERCISE 1.10
-(define (A x y)
-  (cond ((= y 0) 0)
-        ((= x 0) (* 2 y))
-        ((= y 1) 2)
-        (else (A (- x 1)
-                 (A x (- y 1))))))
+(defn A [x y]
+  (cond (= y 0) 0
+        (= x 0) (* 2 y)
+        (= y 1) 2
+        :else (A (- x 1)
+                 (A x (- y 1)))))
 
-; (A 1 10)
+(A 1 10)
+(A 2 4)
+(A 3 3)
 
-; (A 2 4)
+(defn f [n]
+  (A 0 n))
 
-; (A 3 3)
+; f(n) = 2 * n
 
-(define (f n) (A 0 n))
+(defn g [n]
+  (A 1 n))
 
-(define (g n) (A 1 n))
+; g(n) = 2 ** n
+(g 2)
+(A 1 2)
+(A 0 (A 1 1))
+(A 0 2)
+(* 2 2)
+4
 
-(define (h n) (A 2 n))
+(defn h [n]
+  (A 2 n))
 
-(define (k n) (* 5 n n))
+(h 2)
+(A 2 2)
+(A 1 (A 2 1))
+(A 1 2)
+(A 0 (A 1 1))
+(A 0 2)
+(* 2 2)
+4
 
+; f(n) = 2 ** n
+
+(defn k [n]
+  (* 5 n n))
+
+; k(n) = 5 n**2
 
 ;;;SECTION 1.2.2
 
 ;; Recursive
 
-(define (fib n)
-  (cond ((= n 0) 0)
-        ((= n 1) 1)
-        (else (+ (fib (- n 1))
-                 (fib (- n 2))))))
+(defn fib [n]
+  (cond (= n 0) 0
+        (= n 1) 1
+        :else (+ (fib (- n 1))
+                 (fib (- n 2)))))
 
 ;; Iterative
 
-(define (fib n)
+(defn fib [n]
   (fib-iter 1 0 n))
 
-(define (fib-iter a b count)
+(defn fib-iter [a b count]
   (if (= count 0)
       b
       (fib-iter (+ a b) a (- count 1))))
@@ -386,37 +431,94 @@
 
 ;; Counting change
 
-(define (count-change amount)
+(defn count-change [amount]
   (cc amount 5))
 
-(define (cc amount kinds-of-coins)
-  (cond ((= amount 0) 1)
-        ((or (< amount 0) (= kinds-of-coins 0)) 0)
-        (else (+ (cc amount
+(defn cc [amount kinds-of-coins]
+  (cond (= amount 0) 1
+        (or (< amount 0) (= kinds-of-coins 0)) 0
+        :else (+ (cc amount
                      (- kinds-of-coins 1))
                  (cc (- amount
                         (first-denomination kinds-of-coins))
-                     kinds-of-coins)))))
+                     kinds-of-coins))))
 
-(define (first-denomination kinds-of-coins)
-  (cond ((= kinds-of-coins 1) 1)
-        ((= kinds-of-coins 2) 5)
-        ((= kinds-of-coins 3) 10)
-        ((= kinds-of-coins 4) 25)
-        ((= kinds-of-coins 5) 50)))
+(defn first-denomination [kinds-of-coins]
+  (cond (= kinds-of-coins 1) 1
+        (= kinds-of-coins 2) 5
+        (= kinds-of-coins 3) 10
+        (= kinds-of-coins 4) 25
+        (= kinds-of-coins 5) 50))
 
-; (count-change 100)
+(count-change 100)
 
+;;EXERCISE 1.11
+
+; recursive version
+(defn f
+  [n]
+  (cond
+    (< n 3) n
+    :else (+ (f (- n 1))
+             (* 2 (f (- n 2)))
+             (* 3 (f (- n 3))))))
+(f 1)
+(f 4)
+(f 5)
+(f 6)
+
+; iterative version
+
+(defn g
+  [n]
+  (f-iter 1 2 3 n))
+
+(defn f-iter
+  [two-back one-back result count]
+  (cond
+    (< n 3) result
+    :else (f-iter second third (+ first
+                                  (* 2 second)
+                                  (* 3 third))
+                  (- n 1))))
+
+(g 1)
+(g 2)
+(g 3)
+(g 4)
+
+; EXERCISE 1.2
+
+(defn pascalvalue
+  [row column]
+  (s/save 1)
+  (if (or (= 0 column) (= row column))
+      1
+      (+ (pascalvalue (- row 1) (- column 1))
+         (pascalvalue (- row 1) column))))
+
+(pascalvalue 0 0)
+(pascalvalue 1 0)
+(pascalvalue 1 1)
+(pascalvalue 2 0)
+(pascalvalue 2 1)
+(pascalvalue 2 2)
+(pascalvalue 3 0)
+(pascalvalue 3 1)
+(pascalvalue 3 2)
+(pascalvalue 3 3)
 
 ;;;SECTION 1.2.3
 
 ;;EXERCISE 1.15
-(define (cube x) (* x x x))
+(defn cube [x]
+  (* x x x))
 
-(define (p x) (- (* 3 x) (* 4 (cube x))))
+(defn p [x]
+  (- (* 3 x) (* 4 (cube x))))
 
-(define (sine angle)
-   (if (not (> (abs angle) 0.1))
+(defn sine [angle]
+   (if (not (> (Math/abs angle) 0.1))
        angle
        (p (sine (/ angle 3.0)))))
 
@@ -424,17 +526,17 @@
 ;;;SECTION 1.2.4
 
 ;; Linear recursion
-(define (expt b n)
+(defn expt [b n]
   (if (= n 0)
       1
       (* b (expt b (- n 1)))))
 
 
 ;; Linear iteration
-(define (expt b n)
+(defn expt [b n]
   (expt-iter b n 1))
 
-(define (expt-iter b counter product)
+(defn expt-iter [b counter product]
   (if (= counter 0)
       product
       (expt-iter b
@@ -442,117 +544,117 @@
                 (* b product))))
 
 ;; Logarithmic iteration
-(define (fast-expt b n)
-  (cond ((= n 0) 1)
-        ((even? n) (square (fast-expt b (/ n 2))))
-        (else (* b (fast-expt b (- n 1))))))
+(defn fast-expt [b n]
+  (cond (= n 0) 1
+        (even? n) (square (fast-expt b (/ n 2)))
+        :else (* b (fast-expt b (- n 1)))))
 
-(define (even? n)
-  (= (remainder n 2) 0))
+(defn even? [n]
+  (= (rem n 2) 0))
 
 
 ;;EXERCISE 1.17
-(define (* a b)
+(defn * [a b]
   (if (= b 0)
       0
       (+ a (* a (- b 1)))))
 
 ;;EXERCISE 1.19
-(define (fib n)
+(defn fib [n]
   (fib-iter 1 0 0 1 n))
 
-(define (fib-iter a b p q count)
-  (cond ((= count 0) b)
-        ((even? count)
+(defn fib-iter [a b p q count]
+  (cond (= count 0) b
+        (even? count
          (fib-iter a
                    b
                    ??FILL-THIS-IN?? ; compute p'
                    ??FILL-THIS-IN?? ; compute q'
                    (/ count 2)))
-        (else (fib-iter (+ (* b q) (* a q) (* a p))
+        :else (fib-iter (+ (* b q) (* a q) (* a p))
                         (+ (* b p) (* a q))
                         p
                         q
-                        (- count 1)))))
+                        (- count 1))))
 
 
 ;;;SECTION 1.2.5
 
-(define (gcd a b)
+(defn gcd [a b]
   (if (= b 0)
       a
-      (gcd b (remainder a b))))
+      (gcd b (rem a b))))
 
 
 ;;;SECTION 1.2.6
 
 ;; prime?
 
-(define (smallest-divisor n)
+(defn smallest-divisor [n]
   (find-divisor n 2))
 
-(define (find-divisor n test-divisor)
-  (cond ((> (square test-divisor) n) n)
-        ((divides? test-divisor n) test-divisor)
-        (else (find-divisor n (+ test-divisor 1)))))
+(defn find-divisor [n test-divisor]
+  (cond (> (square test-divisor) n) n
+        (divides? test-divisor n) test-divisor
+        :else (find-divisor n (+ test-divisor 1))))
 
-(define (divides? a b)
-  (= (remainder b a) 0))
+(defn divides? [a b]
+  (= (rem b a) 0))
 
-(define (prime? n)
+(defn prime? [n]
   (= n (smallest-divisor n)))
 
 
 ;; fast-prime?
 
-(define (expmod base exp m)
-  (cond ((= exp 0) 1)
-        ((even? exp)
-         (remainder (square (expmod base (/ exp 2) m))
-                    m))
-        (else
-         (remainder (* base (expmod base (- exp 1) m))
-                    m))))
+(defn expmod [base exp m]
+  (cond (= exp 0) 1
+        (even? exp)
+        (rem (square (expmod base (/ exp 2) m))
+             m)
+        :else
+         (rem (* base (expmod base (- exp 1) m))
+              m)))
 
-(define (fermat-test n)
-  (define (try-it a)
+(defn fermat-test [n]
+  (defn try-it [a]
     (= (expmod a n n) a))
-  (try-it (+ 1 (random (- n 1)))))
+  (try-it (+ 1 (rand-int (- n 1)))))
 
-(define (fast-prime? n times)
-  (cond ((= times 0) true)
-        ((fermat-test n) (fast-prime? n (- times 1)))
-        (else false)))
+(defn fast-prime? [n times]
+  (cond (= times 0) true
+        (fermat-test n) (fast-prime? n (- times 1))
+        :else false))
 
 
 ;;EXERCISE 1.22
-(define (timed-prime-test n)
+(defn timed-prime-test [n]
   (newline)
-  (display n)
-  (start-prime-test n (runtime)))
+  (println n)
+  (start-prime-test n (System/currentTimeMillis)))
 
-(define (start-prime-test n start-time)
+(defn start-prime-test [n start-time]
   (if (prime? n)
-      (report-prime (- (runtime) start-time))))
+      (report-prime (- (System/currentTimeMillis) start-time))))
 
-(define (report-prime elapsed-time)
-  (display " *** ")
-  (display elapsed-time))
+(defn report-prime [elapsed-time]
+  (println " *** ")
+  (println elapsed-time))
 
 ;;EXERCISE 1.25
-(define (expmod base exp m)
-  (remainder (fast-expt base exp) m))
+(defn expmod [base exp m]
+  (rem (fast-expt base exp) m))
 
 ;;EXERCISE 1.26
-(define (expmod base exp m)
-  (cond ((= exp 0) 1)
-        ((even? exp)
-         (remainder (* (expmod base (/ exp 2) m)
-                       (expmod base (/ exp 2) m))
-                    m))
-        (else
-         (remainder (* base (expmod base (- exp 1) m))
-                    m))))
+(defn expmod [base exp m]
+  (cond (= exp 0) 1
+        (even? exp)
+        (rem (* (expmod base (/ exp 2) m)
+                (expmod base (/ exp 2) m))
+             m)
+        :else
+        (rem (* base (expmod base (- exp 1) m))
+             m)))
 
 ;;;SECTION 1.3
 
