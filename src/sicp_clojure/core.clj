@@ -450,7 +450,7 @@
         (= kinds-of-coins 4) 25
         (= kinds-of-coins 5) 50))
 
-(count-change 100)
+(count-change 11)
 
 ;;EXERCISE 1.11
 
@@ -510,11 +510,17 @@
 
 ;;;SECTION 1.2.3
 
+;;Excercise 1.14
+
+; steps order n
+; space order n log n
+
 ;;EXERCISE 1.15
 (defn cube [x]
   (* x x x))
 
 (defn p [x]
+  (s/save 2)
   (- (* 3 x) (* 4 (cube x))))
 
 (defn sine [angle]
@@ -522,6 +528,10 @@
        angle
        (p (sine (/ angle 3.0)))))
 
+(sine 70.15)
+
+; p is executed 5 times
+; there is no change with angle being calculated, ie it is static
 
 ;;;SECTION 1.2.4
 
